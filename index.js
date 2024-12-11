@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 
+app.use(express.json());
+
 let entries = [
   {
     "id": "1",
@@ -43,6 +45,17 @@ app.get('/api/persons', (req, res) => {
   return res.json(entries);
 });
 
+app.post('/api/persons', (req, res) => {
+  const { name, number } = req.body;
+  if (name == undefined || name === '' || number == undefined || number === '') {
+    res.statusMessage = 'Request must include name and number';
+    return res.status(400).end();
+  }
+  const newEntry = { name, number };
+  newEntry.id = String(Math.floor(Math.random() * 1000000));
+  entries.push(newEntry);
+  return res.json(newEntry);
+});
 
 
 app.get('/info', (req, res) => {
