@@ -48,8 +48,10 @@ app.get('/api/persons', (req, res) => {
 app.post('/api/persons', (req, res) => {
   const { name, number } = req.body;
   if (name == undefined || name === '' || number == undefined || number === '') {
-    res.statusMessage = 'Request must include name and number';
-    return res.status(400).end();
+    return res.status(400).send('Request must include name and number');
+  }
+  if (entries.find(entry => entry.name === name)) {
+    return res.status(400).send(`Forbidden.  There is already an entry for ${name}.`);
   }
   const newEntry = { name, number };
   newEntry.id = String(Math.floor(Math.random() * 1000000));
