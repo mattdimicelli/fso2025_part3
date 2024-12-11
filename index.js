@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-const entries = [
+let entries = [
   {
     "id": "1",
     "name": "Arto Hellas",
@@ -24,9 +24,26 @@ const entries = [
   }
 ];
 
+app.get('/api/persons/:id', (req, res) => {
+  const { id } = req.params;
+  const foundEntry = entries.find(entry => entry.id === String(id));
+  if (foundEntry) {
+    return res.json(foundEntry);
+  } else {
+    return res.status(404).end();
+  }
+});
+
+app.delete('/api/persons/:id', (req, res) => {
+  const id = req.params.id;
+  entries = entries.filter(entry => entry.id !== String(id));
+  return res.status(204).end();
+})
 app.get('/api/persons', (req, res) => {
   return res.json(entries);
 });
+
+
 
 app.get('/info', (req, res) => {
   const date = new Date();
