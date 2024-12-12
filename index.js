@@ -1,7 +1,9 @@
 const express = require('express');
+const cors = require('cors');
 const morgan = require('morgan');
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(morgan('tiny'));
 
@@ -40,8 +42,12 @@ app.get('/api/persons/:id', (req, res) => {
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = req.params.id;
-  entries = entries.filter(entry => entry.id !== String(id));
-  return res.status(204).end();
+  const entryToDelete = entries.find(entry => entry.id === String(id));
+  if (entryToDelete) {
+    entries = entries.filter(entry => entry.id !== String(id));
+    return res.status(204).end();
+  }
+  return res.status(404).end();
 })
 app.get('/api/persons', (req, res) => {
   return res.json(entries);
