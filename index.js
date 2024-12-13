@@ -118,7 +118,7 @@ app.get('/info', (req, res) => {
   return res.send(`<p>There are ${entries.length} entries in the phonebook</p><p>${day} ${month} ${date.getDate()} ${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p>`);
 })
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Phonebook server running on port ${PORT}`);
 })
