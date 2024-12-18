@@ -10,29 +10,6 @@ app.use(express.json());
 app.use(morgan('tiny'));
 app.use(express.static('dist'));
 
-let entries = [
-  {
-    "id": "1",
-    "name": "Arto Hellas",
-    "number": "040-123456"
-  },
-  {
-    "id": "2",
-    "name": "Ada Lovelace",
-    "number": "39-44-5323523"
-  },
-  {
-    "id": "3",
-    "name": "Dan Abramov",
-    "number": "12-43-234345"
-  },
-  {
-    "id": "4",
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122"
-  }
-];
-
 app.get('/api/persons/:id', (req, res, next) => {
   const { id } = req.params;
   return Entry.findById(id)
@@ -81,14 +58,10 @@ app.post('/api/persons', (req, res, next) => {
       }
     })
     .catch(e => next(e));
-
-  // return newEntry.save()
-  //   .then(response => res.json(response))
-  //   .catch(e => next(e));
 });
 
 
-app.get('/info', (req, res) => {
+app.get('/info', (req, res, next) => {
   const date = new Date();
   const dayNum = date.getDay();
   let day;
@@ -134,8 +107,11 @@ app.get('/info', (req, res) => {
   } else if (monthNum === 11) {
     month = 'Dec';
   }
-
-  return res.send(`<p>There are ${entries.length} entries in the phonebook</p><p>${day} ${month} ${date.getDate()} ${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p>`);
+  return Entry.find({})
+          .then(response => {
+              return res.send(`<p>There are ${response.length} entries in the phonebook</p><p>${day} ${month} ${date.getDate()} ${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p>`);
+          })
+          .catch(e => next(e));
 })
 
 app.use((req, res) => {
