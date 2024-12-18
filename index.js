@@ -33,7 +33,7 @@ let entries = [
   }
 ];
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
   const { id } = req.params;
   return Entry.findById(id)
     .then(response => {
@@ -42,10 +42,11 @@ app.get('/api/persons/:id', (req, res) => {
       } else {
         return res.json(response);
       }
-  });
+    })
+    .catch(e => next(e));
 });
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
   return Entry.findByIdAndDelete(id)
     .then(response => {
@@ -54,24 +55,36 @@ app.delete('/api/persons/:id', (req, res) => {
       } else {
         return res.status(204).end();
       }
-    });
+    })
+    .catch(e => next(e));
 })
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (req, res, next) => {
   return Entry.find({})
-    .then(results => res.json(results));
+    .then(results => res.json(results))
+    .catch(e => next(e));
 });
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const { name, number } = req.body;
   if (name == undefined || name === '' || number == undefined || number === '') {
     return res.status(400).send('Request must include name and number');
   }
-  // if (entries.find(entry => entry.name === name)) {
-  //   return res.status(400).send(`Forbidden.  There is already an entry for ${name}.`);
-  // }
-  const newEntry = new Entry({ name, number });
-  return newEntry.save()
-    .then(response => res.json(response));
+  return Entry.findOne({ name })
+    .then(response => {
+      if (response === null) {
+        const newEntry = new Entry({ name, number });
+        newEntry.save()
+          .then(respuesta => res.json( { newEntry: true, entry: respuesta }));
+      } else {
+        Entry.findByIdAndUpdate(response._id, { name, number }, { new: true })
+          .then(respuesta => res.json({ newEntry: false, entry: respuesta }));
+      }
+    })
+    .catch(e => next(e));
+
+  // return newEntry.save()
+  //   .then(response => res.json(response))
+  //   .catch(e => next(e));
 });
 
 
@@ -123,6 +136,19 @@ app.get('/info', (req, res) => {
   }
 
   return res.send(`<p>There are ${entries.length} entries in the phonebook</p><p>${day} ${month} ${date.getDate()} ${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p>`);
+})
+
+app.use((req, res) => {
+  return res.status(404).json({ error: 'Unknown endpoint' });
+})
+
+app.use((e, req, res, next) => {
+  console.error(e);
+  if (e.name === 'CastError') {
+    return res.status(400).json({ error: 'Malformatted ID'});
+  } else {
+    return next(e);
+  }
 })
 
 const PORT = process.env.PORT || 3001;
