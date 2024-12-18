@@ -35,27 +35,30 @@ let entries = [
 
 app.get('/api/persons/:id', (req, res) => {
   const { id } = req.params;
-  const foundEntry = entries.find(entry => entry.id === String(id));
-  if (foundEntry) {
-    return res.json(foundEntry);
-  } else {
-    return res.status(404).end();
-  }
+  return Entry.findById(id)
+    .then(response => {
+      if (response === null) {
+        return res.status(404).end();
+      } else {
+        return res.json(response);
+      }
+  });
 });
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = req.params.id;
-  const entryToDelete = entries.find(entry => entry.id === String(id));
-  if (entryToDelete) {
-    entries = entries.filter(entry => entry.id !== String(id));
-    return res.status(204).end();
-  }
-  return res.status(404).end();
+  return Entry.findByIdAndDelete(id)
+    .then(response => {
+      if (response === null) {
+        return res.status(404).json({ error: 'Invalid ID'});
+      } else {
+        return res.status(204).end();
+      }
+    });
 })
 app.get('/api/persons', (req, res) => {
   return Entry.find({})
     .then(results => res.json(results));
-  //return res.json(entries);
 });
 
 app.post('/api/persons', (req, res) => {
@@ -63,13 +66,12 @@ app.post('/api/persons', (req, res) => {
   if (name == undefined || name === '' || number == undefined || number === '') {
     return res.status(400).send('Request must include name and number');
   }
-  if (entries.find(entry => entry.name === name)) {
-    return res.status(400).send(`Forbidden.  There is already an entry for ${name}.`);
-  }
-  const newEntry = { name, number };
-  newEntry.id = String(Math.floor(Math.random() * 1000000));
-  entries.push(newEntry);
-  return res.json(newEntry);
+  // if (entries.find(entry => entry.name === name)) {
+  //   return res.status(400).send(`Forbidden.  There is already an entry for ${name}.`);
+  // }
+  const newEntry = new Entry({ name, number });
+  return newEntry.save()
+    .then(response => res.json(response));
 });
 
 
