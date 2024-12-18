@@ -17,12 +17,12 @@ const url = `mongodb+srv://matthewdimicelli:${password}@cluster0.rtzoz.mongodb.n
 mongoose.set('strictQuery',false);
 
 mongoose.connect(url).then(() => {
-  const entrySchema = new mongoose.Schema({
-    name: String,
-    number: String,
-  });
+  // const entrySchema = new mongoose.Schema({
+  //   name: String,
+  //   number: String,
+  // });
 
-  const Entry = mongoose.model('Entry', entrySchema);
+  // const Entry = mongoose.model('Entry', entrySchema);
 
   if (process.argv.length === 3) {
     console.log('getting all entries')

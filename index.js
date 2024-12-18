@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const app = express();
+const Entry = require('./models/entry');
 
 app.use(cors());
 app.use(express.json());
@@ -51,7 +53,9 @@ app.delete('/api/persons/:id', (req, res) => {
   return res.status(404).end();
 })
 app.get('/api/persons', (req, res) => {
-  return res.json(entries);
+  return Entry.find({})
+    .then(results => res.json(results));
+  //return res.json(entries);
 });
 
 app.post('/api/persons', (req, res) => {
