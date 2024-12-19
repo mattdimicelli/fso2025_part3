@@ -43,17 +43,17 @@ app.get('/api/persons', (req, res, next) => {
 
 app.post('/api/persons', (req, res, next) => {
   const { name, number } = req.body;
-  if (name == undefined || name === '' || number == undefined || number === '') {
-    return res.status(400).send('Request must include name and number');
-  }
+  // if (name == undefined || name === '' || number == undefined || number === '') {
+  //   return res.status(400).send('Request must include name and number');
+  // }
   return Entry.findOne({ name })
     .then(response => {
       if (response === null) {
         const newEntry = new Entry({ name, number });
-        newEntry.save()
+        return newEntry.save()
           .then(respuesta => res.json( { newEntry: true, entry: respuesta }));
       } else {
-        Entry.findByIdAndUpdate(response._id, { name, number }, { new: true })
+        return Entry.findByIdAndUpdate(response._id, { name, number }, { new: true, runValidators: true, context: 'query' })
           .then(respuesta => res.json({ newEntry: false, entry: respuesta }));
       }
     })
@@ -122,6 +122,8 @@ app.use((e, req, res, next) => {
   console.error(e);
   if (e.name === 'CastError') {
     return res.status(400).json({ error: 'Malformatted ID'});
+  } else if (e.name === 'ValidationError') {
+    return res.status(400).json({ error: e.message });
   } else {
     return next(e);
   }
