@@ -10,17 +10,18 @@ app.use(express.json());
 app.use(morgan('tiny'));
 app.use(express.static('dist'));
 
-app.get('/api/persons/:id', (req, res, next) => {
+app.get('/api/persons/:id', async (req, res, next) => {
   const { id } = req.params;
-  return Entry.findById(id)
-    .then(response => {
-      if (response === null) {
-        return res.status(404).end();
-      } else {
-        return res.json(response);
-      }
-    })
-    .catch(e => next(e));
+  try {
+    const response = await Entry.findById(id);
+    if (response === null) {
+      res.status(404).end();
+    } else {
+      res.json(response);
+    }
+  } catch(e) {
+    next(e);
+  }
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {

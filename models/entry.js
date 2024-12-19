@@ -4,13 +4,15 @@ const url = process.env.MONGODB_URI;
 
 mongoose.set('strictQuery',false);
 
-mongoose.connect(url)
-.then(() => {
-  console.log('connected to MongoDB')
-})
-.catch(error => {
-  console.log('error connecting to MongoDB:', error.message)
-})
+(async () => {
+  try {
+    await mongoose.connect(url);
+    console.log('connected to MongoDB')
+  } catch(e) {
+    console.log('error connecting to MongoDB:', e.message)
+  }
+})();
+
 
 const entrySchema = new mongoose.Schema({
   name: {
