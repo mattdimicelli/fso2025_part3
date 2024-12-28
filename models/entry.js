@@ -23,6 +23,13 @@ const entrySchema = new mongoose.Schema({
   number: {
     type: String,
     required: true,
+    minLength: 8,
+    validate: {
+      validator: function(input) {
+        return /\d+-\d+/.test(input);
+      },
+      message: 'Numbers must be formed of two parts that are separated by -, the first part has two or three numbers and the second part also consists of numbers',
+    },
   }
 });
 
