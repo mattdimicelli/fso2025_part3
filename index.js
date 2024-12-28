@@ -24,45 +24,54 @@ app.get('/api/persons/:id', async (req, res, next) => {
   }
 });
 
-app.delete('/api/persons/:id', (req, res, next) => {
+app.delete('/api/persons/:id', async (req, res, next) => {
   const id = req.params.id;
-  return Entry.findByIdAndDelete(id)
-    .then(response => {
-      if (response === null) {
-        return res.status(404).json({ error: 'Invalid ID'});
-      } else {
-        return res.status(204).end();
-      }
-    })
-    .catch(e => next(e));
-})
-app.get('/api/persons', (req, res, next) => {
-  return Entry.find({})
-    .then(results => res.json(results))
-    .catch(e => next(e));
+  try {
+    const response = await Entry.findByIdAndDelete(id);
+    if (response === null) {
+      res.status(404).json({ error: 'Invalid ID' });
+    } else {
+      res.status(204).end();
+    }
+  } catch(e) {
+    next(e);
+  }
 });
 
-app.post('/api/persons', (req, res, next) => {
+app.get('/api/persons', async (req, res, next) => {
+  try {
+    const results = await Entry.find({});
+    res.json(results);
+  } catch (e) {
+    next(e);
+  }
+});
+
+
+app.post('/api/persons', async (req, res, next) => {
   const { name, number } = req.body;
   // if (name == undefined || name === '' || number == undefined || number === '') {
   //   return res.status(400).send('Request must include name and number');
   // }
-  return Entry.findOne({ name })
-    .then(response => {
-      if (response === null) {
-        const newEntry = new Entry({ name, number });
-        return newEntry.save()
-          .then(respuesta => res.json( { newEntry: true, entry: respuesta }));
-      } else {
-        return Entry.findByIdAndUpdate(response._id, { name, number }, { new: true, runValidators: true, context: 'query' })
-          .then(respuesta => res.json({ newEntry: false, entry: respuesta }));
-      }
-    })
-    .catch(e => next(e));
+  try {
+    const response = await Entry.findOne({ name });
+    if (response === null) {
+      const newEntry = new Entry({ name, number });
+      const respuesta = await newEntry.save();
+      res.json({ newEntry: true, entry: respuesta });
+    } else {
+      const respuesta = await Entry.findByIdAndUpdate(response._id,
+        { name, number }, { new: true, runValidators: true, context: 'query' });
+      res.json({ newEntry: false, entry: respuesta });
+    }
+  } catch (e) {
+    next(e);
+  }
 });
 
 
-app.get('/info', (req, res, next) => {
+
+app.get('/info', async (req, res, next) => {
   const date = new Date();
   const dayNum = date.getDay();
   let day;
@@ -108,25 +117,27 @@ app.get('/info', (req, res, next) => {
   } else if (monthNum === 11) {
     month = 'Dec';
   }
-  return Entry.find({})
-          .then(response => {
-              return res.send(`<p>There are ${response.length} entries in the phonebook</p><p>${day} ${month} ${date.getDate()} ${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p>`);
-          })
-          .catch(e => next(e));
-})
+
+  try {
+    const response = await Entry.find({});
+    res.send(`<p>There are ${response.length} entries in the phonebook</p><p>${day} ${month} ${date.getDate()} ${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</p>`);
+  } catch(e) {
+    next(e);
+  }
+});
 
 app.use((req, res) => {
-  return res.status(404).json({ error: 'Unknown endpoint' });
+  res.status(404).json({ error: 'Unknown endpoint' });
 })
 
 app.use((e, req, res, next) => {
   console.error(e);
   if (e.name === 'CastError') {
-    return res.status(400).json({ error: 'Malformatted ID'});
+    res.status(400).json({ error: 'Malformatted ID'});
   } else if (e.name === 'ValidationError') {
-    return res.status(400).json({ error: e.message });
+    res.status(400).json({ error: e.message });
   } else {
-    return next(e);
+    next(e);
   }
 })
 
